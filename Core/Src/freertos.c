@@ -22,6 +22,7 @@
 #include "task.h"
 #include "main.h"
 #include "cmsis_os.h"
+#include "pid_regulator.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -113,7 +114,9 @@ void MX_FREERTOS_Init(void) {
 /* USER CODE END Header_StartDefaultTask */
 void StartDefaultTask(void *argument)
 {
-  /* USER CODE BEGIN StartDefaultTask */
+  pid_t pid;
+  pid_init(&pid, 0, 0, 0, 10, 100);
+/* USER CODE BEGIN StartDefaultTask */
   /* Infinite loop */
   for(;;)
   {
