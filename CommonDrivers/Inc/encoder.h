@@ -1,7 +1,7 @@
 /**
  * @file    encoder.h
- * @author  Teodoro Adinolfi && Alessio Guarini
- * @brief   Incremental encoder driver for STM32F4 MCUs (HAL-based)
+ * @author  Miriam Vitolo
+ * @brief   Incremental encoder driver for STM32F767 MCUs (HAL-based)
  * @version 1.0
  * @date    2025-06-04
  *
@@ -49,6 +49,19 @@ typedef uint8_t Encoder_StatusTypeDef;
 /** @brief Generic failure (invalid parameters, HAL error, timeout, …). */
 #define ENCODER_ERROR   ((Encoder_StatusTypeDef)1U)
 
+/** @brief Counts per revolution of the encoder. */
+#define ENCODER_CPR         24
+
+/** @brief Gear reduction ratio between motor shaft and output shaft. */
+#define ENCODER_GEAR_RATIO  51
+
+/** @brief Number of encoder channels used */
+#define ENCODER_N_CHANNELS  2
+
+/** @brief Sampling time in seconds for encoder readings. */
+#define ENCODER_SAMPLING_TIME  0.005
+
+
 /*=========================================================================*/
 /*  CONFIGURATION STRUCTURE                                                */
 /*=========================================================================*/
@@ -66,7 +79,23 @@ typedef struct
     TIM_HandleTypeDef * htim;       /*!< HAL timer handle (must not be NULL). */
     uint16_t            gear_ratio; /*!< Gear ratio (≥ 1).                    */
     uint16_t            cpr;        /*!< Counts per revolution (≥ 1).         */
+    uint8_t 			n_channels; /*!< Number of encoder channels	*/
+    double		   		sampling_time;
 } encoder_config_t;
+
+/*=========================================================================*/
+/*  ENUMERATION TYPES                                                      */
+/*=========================================================================*/
+
+/**
+ * @enum    EncoderRotationEnum_t
+ * @brief   Represents the rotation direction of the encoder.
+ */
+typedef enum {
+    DEFAULT_DIRECTION  = 0,
+    BACKWARD_DIRECTION = 1,
+    FORWARD_DIRECTION  = 2
+} EncoderRotationEnum_t;
 
 /*=========================================================================*/
 /*  RUNTIME STRUCTURE                                                      */
@@ -82,9 +111,10 @@ typedef struct
  */
 typedef struct
 {
-    const Encoder_config_t * config;           /*!< Immutable configuration.      */
-    uint32_t                 last_tick_count;  /*!< Last TIM counter snapshot.    */
-    float32_t                actual_speed_rpm; /*!< Speed in revolutions-per-min. */
+    const encoder_config_t * config;           /*!< Immutable configuration.      */
+    uint32_t                last_tick_count;  /*!< Last TIM counter snapshot.    */
+    double                	actual_speed_rpm;    /*!< Speed in revolutions-per-min. */
+    EncoderRotationEnum_t 	rotation_status;
 } encoder_t;
 
 /*=========================================================================*/
@@ -110,21 +140,15 @@ Encoder_StatusTypeDef encoder_init(encoder_t * encoder,
 /**
  * @brief Update the speed estimate (RPM) of the selected encoder.
  *
- * The function computes the difference between the current TIM counter value
+ * This function computes the difference between the current TIM counter value
  * and the value stored in @p encoder->last_tick_count, compensates for 16-bit
- * rollover, converts ticks to mechanical revolutions through the CPR and gear
- * ratio information, and finally produces a speed in RPM using the sampling
- * period supplied by the caller.
+ * rollover, converts ticks to mechanical revolutions using the encoder's CPR
+ * and gear ratio, and computes a rotational speed in RPM.
  *
- * @note The sampling period **must** be the actual elapsed time since the
- *       previous call to the same function, expressed in seconds.
- *
- * @param[in,out] encoder          Pointer to the encoder instance.
- * @param[in]     sampling_period  Delta-t in seconds (floating-point, > 0).
+ * @param[in,out] encoder  Pointer to the encoder instance.
  *
  * @return ENCODER_OK on success, otherwise ENCODER_ERROR.
  */
-Encoder_StatusTypeDef encoder_update_speed(encoder_t * encoder,
-                                          float32_t   sampling_period);
+Encoder_StatusTypeDef encoder_update_speed(encoder_t * encoder);
 
 #endif /* ENCODER_H */
