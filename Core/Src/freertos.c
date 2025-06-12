@@ -59,12 +59,12 @@ const osThreadAttr_t defaultTask_attributes = {
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
-/* Definitions for encoderRead */
-osThreadId_t encoderReadHandle;
+/* Definitions for MotorControlTas */
+osThreadId_t MotorControlTasHandle;
 uint32_t encoderReadBuffer[ 128 ];
 osStaticThreadDef_t encoderReadControlBlock;
-const osThreadAttr_t encoderRead_attributes = {
-  .name = "encoderRead",
+const osThreadAttr_t MotorControlTas_attributes = {
+  .name = "MotorControlTas",
   .cb_mem = &encoderReadControlBlock,
   .cb_size = sizeof(encoderReadControlBlock),
   .stack_mem = &encoderReadBuffer[0],
@@ -78,7 +78,7 @@ const osThreadAttr_t encoderRead_attributes = {
 /* USER CODE END FunctionPrototypes */
 
 void StartDefaultTask(void *argument);
-void startEncoderRead(void *argument);
+void startMotorControl(void *argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -115,8 +115,8 @@ void MX_FREERTOS_Init(void) {
   /* creation of defaultTask */
   defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
 
-  /* creation of encoderRead */
-  encoderReadHandle = osThreadNew(startEncoderRead, NULL, &encoderRead_attributes);
+  /* creation of MotorControlTas */
+  MotorControlTasHandle = osThreadNew(startMotorControl, NULL, &MotorControlTas_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -147,28 +147,28 @@ void StartDefaultTask(void *argument)
   /* USER CODE END StartDefaultTask */
 }
 
-/* USER CODE BEGIN Header_startEncoderRead */
+/* USER CODE BEGIN Header_startMotorControl */
 /**
-* @brief Function implementing the encoderRead thread.
+* @brief Function implementing the MotorControlTas thread.
 * @param argument: Not used
 * @retval None
 */
-/* USER CODE END Header_startEncoderRead */
-void startEncoderRead(void *argument)
+/* USER CODE END Header_startMotorControl */
+void startMotorControl(void *argument)
 {
-  /* USER CODE BEGIN startEncoderRead */
+	/* USER CODE BEGIN StartDefaultTask */
 	TickType_t xLastWakeTime;
 	const TickType_t xFrequency = pdMS_TO_TICKS(ENCODER_SAMPLING_TIME * 1000);
 	xLastWakeTime = xTaskGetTickCount();
-  /* Infinite loop */
-  for(;;)
-  {
-	  vTaskDelayUntil( &xLastWakeTime, xFrequency );
-	  if(motor_step() != ENCODER_OK){
-		  Error_Handler();
-	  }
-  }
-  /* USER CODE END startEncoderRead */
+	/* Infinite loop */
+	for(;;)
+	{
+		vTaskDelayUntil( &xLastWakeTime, xFrequency );
+		if(motor_step() != ENCODER_OK){
+			Error_Handler();
+		}
+	}
+	  /* USER CODE END StartDefaultTask */
 }
 
 /* Private application code --------------------------------------------------*/
