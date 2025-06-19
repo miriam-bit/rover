@@ -30,6 +30,8 @@
 #include <string.h>
 #include <stdbool.h>
 #include "rover_firmware.h"
+#include "test_comunication.h"
+#include "canParser.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -71,14 +73,50 @@ const osThreadAttr_t MotorControlTas_attributes = {
   .stack_size = sizeof(encoderReadBuffer),
   .priority = (osPriority_t) osPriorityRealtime7,
 };
+/* Definitions for canTxTask */
+osThreadId_t canTxTaskHandle;
+uint32_t canTxTaskBuffer[ 256 ];
+osStaticThreadDef_t canTxTaskControlBlock;
+const osThreadAttr_t canTxTask_attributes = {
+  .name = "canTxTask",
+  .cb_mem = &canTxTaskControlBlock,
+  .cb_size = sizeof(canTxTaskControlBlock),
+  .stack_mem = &canTxTaskBuffer[0],
+  .stack_size = sizeof(canTxTaskBuffer),
+  .priority = (osPriority_t) osPriorityNormal,
+};
+/* Definitions for MPUCanTxTask */
+osThreadId_t MPUCanTxTaskHandle;
+uint32_t MPUCanTxTaskBuffer[ 128 ];
+osStaticThreadDef_t MPUCanTxTaskControlBlock;
+const osThreadAttr_t MPUCanTxTask_attributes = {
+  .name = "MPUCanTxTask",
+  .cb_mem = &MPUCanTxTaskControlBlock,
+  .cb_size = sizeof(MPUCanTxTaskControlBlock),
+  .stack_mem = &MPUCanTxTaskBuffer[0],
+  .stack_size = sizeof(MPUCanTxTaskBuffer),
+  .priority = (osPriority_t) osPriorityLow,
+};
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
+void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
+    rover_t *rover = rover_get_instance();
+    uint32_t received_value = 0;
+    HAL_CAN_GetRxMessage(hcan, rover->can_config.rx_fifo, &rover->can_manager.config->rx_header, rover->can_manager.rx_data);
+    if (CanParser_decode_can_frame(rover->can_manager.rx_data, &received_value, 0, 32, 1, sizeof(uint32_t)) == CAN_PARSER_STATUS_OK )
+    {
+    	rover->can_manager.message_received = CAN_MANAGER_RECEIVED_NEW_MESSAGE;
+    }
+
+}
 
 /* USER CODE END FunctionPrototypes */
 
 void StartDefaultTask(void *argument);
 void startMotorControl(void *argument);
+void StartCanTxTask(void *argument);
+void MPUCanTxFunc(void *argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -89,10 +127,14 @@ void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
   */
 void MX_FREERTOS_Init(void) {
   /* USER CODE BEGIN Init */
-	rover_get_instance();
+	if(rover_init() != ROVER_OK){
+		Error_Handler();
+	}
+	/*
 	if(Start_PWM_Channels() != HAL_OK || stop_all_motors() != MOTOR_OK ||rover_init() != ROVER_OK){
 		Error_Handler();
 	}
+	*/
   /* USER CODE END Init */
 
   /* USER CODE BEGIN RTOS_MUTEX */
@@ -117,6 +159,12 @@ void MX_FREERTOS_Init(void) {
 
   /* creation of MotorControlTas */
   MotorControlTasHandle = osThreadNew(startMotorControl, NULL, &MotorControlTas_attributes);
+
+  /* creation of canTxTask */
+  canTxTaskHandle = osThreadNew(StartCanTxTask, NULL, &canTxTask_attributes);
+
+  /* creation of MPUCanTxTask */
+  MPUCanTxTaskHandle = osThreadNew(MPUCanTxFunc, NULL, &MPUCanTxTask_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -156,7 +204,7 @@ void StartDefaultTask(void *argument)
 /* USER CODE END Header_startMotorControl */
 void startMotorControl(void *argument)
 {
-	/* USER CODE BEGIN StartDefaultTask */
+  /* USER CODE BEGIN startMotorControl */
 	TickType_t xLastWakeTime;
 	const TickType_t xFrequency = pdMS_TO_TICKS(ENCODER_SAMPLING_TIME * 1000);
 	xLastWakeTime = xTaskGetTickCount();
@@ -164,11 +212,55 @@ void startMotorControl(void *argument)
 	for(;;)
 	{
 		vTaskDelayUntil( &xLastWakeTime, xFrequency );
-		if(motor_step() != ENCODER_OK){
+		if( rover_enc_can_tx_step()!= ROVER_OK){
 			Error_Handler();
 		}
 	}
-	  /* USER CODE END StartDefaultTask */
+  /* USER CODE END startMotorControl */
+}
+
+/* USER CODE BEGIN Header_StartCanTxTask */
+/**
+* @brief Function implementing the canTxTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartCanTxTask */
+void StartCanTxTask(void *argument)
+{
+  /* USER CODE BEGIN StartCanTxTask */
+	TickType_t xLastWakeTime;
+	const TickType_t xFrequency = pdMS_TO_TICKS(CAN_TX_PERIOD_MS);
+	xLastWakeTime = xTaskGetTickCount();
+	for (;;) {
+		vTaskDelayUntil(&xLastWakeTime, xFrequency);
+		if (rover_can_tx_step() != CAN_SENDER_OK) {
+			Error_Handler();
+		}
+	}
+  /* USER CODE END StartCanTxTask */
+}
+
+/* USER CODE BEGIN Header_MPUCanTxFunc */
+/**
+* @brief Function implementing the MPUCanTxTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_MPUCanTxFunc */
+void MPUCanTxFunc(void *argument)
+{
+  /* USER CODE BEGIN MPUCanTxFunc */
+	TickType_t xLastWakeTime;
+	const TickType_t xFrequency = pdMS_TO_TICKS(CAN_TX_PERIOD_MS);
+	xLastWakeTime = xTaskGetTickCount();
+	for (;;){
+		vTaskDelayUntil(&xLastWakeTime, xFrequency);
+		if (rover_imu_can_tx_step()!= ROVER_OK) {
+			Error_Handler();
+		}
+	}
+  /* USER CODE END MPUCanTxFunc */
 }
 
 /* Private application code --------------------------------------------------*/
