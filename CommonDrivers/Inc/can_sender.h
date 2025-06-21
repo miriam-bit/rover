@@ -32,7 +32,7 @@ typedef struct {
 } can_sender_t;
 
 CANSender_StatusTypeDef can_sender_init(can_sender_t *can_sender, canManager_t *can_manager, osMessageQId xQueue);
-CANSender_StatusTypeDef can_sender_enqueue_msg(can_sender_t *can_sender, const can_msg_t *interr_msg);
+CANSender_StatusTypeDef can_sender_enqueue_msg(can_sender_t *can_sender, const can_msg_t *msg);
 CANSender_StatusTypeDef can_sender_dequeue_msg(can_sender_t *can_sender);
 
 

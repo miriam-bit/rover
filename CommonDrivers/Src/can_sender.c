@@ -19,10 +19,10 @@ CANSender_StatusTypeDef can_sender_init(can_sender_t *can_sender, canManager_t *
 	 return status;
 }
 
-CANSender_StatusTypeDef can_sender_enqueue_msg(can_sender_t *can_sender, const can_msg_t *interr_msg){
+CANSender_StatusTypeDef can_sender_enqueue_msg(can_sender_t *can_sender, const can_msg_t *msg){
 	 CANSender_StatusTypeDef status = CAN_SENDER_ERROR;
 	 if(can_sender != NULL){
-		 if (xQueueSend(can_sender->xQueue, interr_msg, 0U) == pdPASS) {
+		 if (xQueueSend(can_sender->xQueue, msg, 0U) == pdPASS) {
 			 status = CAN_SENDER_OK;
 		  }
 	 }
