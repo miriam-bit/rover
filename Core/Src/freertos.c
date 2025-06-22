@@ -101,7 +101,7 @@ const osThreadAttr_t MPUCanTxTask_attributes = {
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
-    rover_t *rover = rover_get_instance();
+	rover_t* const rover = rover_get_instance();
     uint32_t received_value = 0;
     HAL_CAN_GetRxMessage(hcan, rover->can_config.rx_fifo, &rover->can_manager.config->rx_header, rover->can_manager.rx_data);
     if (CanParser_decode_can_frame(rover->can_manager.rx_data, &received_value, 0, 32, 1, sizeof(uint32_t)) == CAN_PARSER_STATUS_OK )

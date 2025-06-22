@@ -72,7 +72,7 @@ static rover_t rover = {
 	.can_sender = {
 		 .can_manager = &rover.can_manager,
 		 .xQueue = NULL,
-		 .interr_buff = {
+		 .can_msg_buff = {
 		 .msg = {0},
 		 .id = 0
 		 }

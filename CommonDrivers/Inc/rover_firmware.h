@@ -72,7 +72,7 @@ typedef struct
 
 } rover_t;
 
-rover_t *rover_get_instance(void);
+rover_t* const rover_get_instance(void);
 Rover_StatusTypeDef rover_init(void);
 HAL_StatusTypeDef Start_PWM_Channels(void);
 Motor_StatusTypeDef stop_all_motors(void);

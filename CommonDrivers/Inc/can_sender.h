@@ -28,7 +28,7 @@ typedef struct {
 typedef struct {
 	canManager_t *can_manager;
     osMessageQId xQueue;
-    can_msg_t interr_buff;
+    can_msg_t can_msg_buff;
 } can_sender_t;
 
 CANSender_StatusTypeDef can_sender_init(can_sender_t *can_sender, canManager_t *can_manager, osMessageQId xQueue);
