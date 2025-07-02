@@ -14,7 +14,15 @@
 #include <string.h>
 #include <stdbool.h>
 
-
+/**
+ * @brief Internal singleton instance of the rover.
+ *
+ * This structure is initialized once and provides centralized access to all
+ * hardware drivers and runtime state related to the rover system.
+ *
+ * - Includes configuration for 4 encoders, MPU sensor, CAN manager, and PWM timer.
+ * - Used internally via rover_get_instance().
+ */
 static rover_t rover = {
     .encoder1_config = {
         .cpr = ENCODER_CPR,
@@ -88,6 +96,9 @@ static rover_t rover = {
 
 };
 
+/**
+ * @brief Singleton instance of the rover structure.
+ */
 static rover_t * const instance = &rover;
 
 rover_t* const rover_get_instance() {
@@ -164,6 +175,7 @@ void drive_motor(TIM_HandleTypeDef* timer,HAL_TIM_ActiveChannel channel, double 
 		__HAL_TIM_SET_COMPARE(timer,channel,compare_value);
 	}
 }
+
 
 Rover_StatusTypeDef rover_get_linear_velocity_xy(double Ts){
 	Rover_StatusTypeDef status = ROVER_ERROR;

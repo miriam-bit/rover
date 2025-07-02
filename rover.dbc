@@ -33,32 +33,32 @@ NS_ :
 
 BS_:
 
-BU_:
+BU_: Rover Jetson
 
 
 
 
-BO_ 14 lin_vel_xy: 8 Vector__XXX
-	SG_ lin_vel_x : 0|32@1+ (1,0) [0|0] "m/s" Vector__XXX
-	SG_ lin_vel_y : 32|32@1+ (1,0) [0|0] "m/s" Vector__XXX
+BO_ 14 LinVelXy: 8 Rover
+	SG_ LinVelX : 0|32@1+ (1,0) [0|0] "m/s" Vector__XXX
+	SG_ LinVelY : 32|32@1+ (1,0) [0|0] "m/s" Vector__XXX
 
-BO_ 11 imu_gyro_xy: 8 Vector__XXX
-	SG_ gyro_x : 0|32@1+ (1,0) [0|0] "rad/s" Vector__XXX
-	SG_ gyro_y : 32|32@1+ (1,0) [0|0] "rad/s" Vector__XXX
+BO_ 11 ImuGyroXy: 8 Rover
+	SG_ GyroX : 0|32@1+ (1,0) [0|0] "rad/s" Vector__XXX
+	SG_ GyroY : 32|32@1+ (1,0) [0|0] "rad/s" Vector__XXX
 
-BO_ 12 imu_accel_xy: 8 Vector__XXX
-	SG_ accel_x : 0|32@1+ (1,0) [0|0] "m/s^2" Vector__XXX
-	SG_ accel_y : 32|32@1+ (1,0) [0|0] "m/s^2" Vector__XXX
+BO_ 12 ImuAccelXy: 8 Rover
+	SG_ AccelX : 0|32@1+ (1,0) [0|0] "m/s^2" Vector__XXX
+	SG_ AccelY : 32|32@1+ (1,0) [0|0] "m/s^2" Vector__XXX
 
-BO_ 13 imu_z: 8 Vector__XXX
-	SG_ gyro_z : 0|32@1+ (1,0) [0|0] "rad/s" Vector__XXX
-	SG_ accel_z : 32|32@1+ (1,0) [0|0] "m/s^2" Vector__XXX
+BO_ 13 ImuZ: 8 Rover
+	SG_ GyroZ : 0|32@1+ (1,0) [0|0] "rad/s" Vector__XXX
+	SG_ AccelZ : 32|32@1+ (1,0) [0|0] "m/s^2" Vector__XXX
 
-BO_ 10 reference: 4 Vector__XXX
-	SG_ front_left : 0|8@1+ (1,0) [0|0] "rpm" Vector__XXX
-	SG_ rear_left : 8|8@1+ (1,0) [0|0] "rpm" Vector__XXX
-	SG_ front_right : 16|8@1+ (1,0) [0|0] "rpm" Vector__XXX
-	SG_ rear_right : 24|8@1+ (1,0) [0|0] "rpm" Vector__XXX
+BO_ 10 Reference: 4 Jetson
+	SG_ FrontLeft : 0|8@1+ (1,0) [0|0] "rpm" Vector__XXX
+	SG_ RearLeft : 8|8@1+ (1,0) [0|0] "rpm" Vector__XXX
+	SG_ FrontRight : 16|8@1+ (1,0) [0|0] "rpm" Vector__XXX
+	SG_ RearRight : 24|8@1+ (1,0) [0|0] "rpm" Vector__XXX
 
 
 BA_DEF_ SG_  "SPN" INT 0 524287;
