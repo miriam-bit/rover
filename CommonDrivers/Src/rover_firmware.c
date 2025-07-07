@@ -88,9 +88,9 @@ static rover_t rover = {
 	.canMsgQueue_attributes = {
 		.name = "canMsgQueue",
 		.cb_mem = &rover.canMsgQueueControlBlock,
-		.cb_size = sizeof(&rover.canMsgQueueControlBlock),
+		.cb_size = sizeof(rover.canMsgQueueControlBlock),
 		.mq_mem = &rover.canMsgQueueBuffer,
-		.mq_size = sizeof(&rover.canMsgQueueBuffer)
+		.mq_size = sizeof(rover.canMsgQueueBuffer)
 	}
 
 
@@ -106,20 +106,23 @@ rover_t* const rover_get_instance() {
 }
 
 Rover_StatusTypeDef rover_init(void){
-	rover.canMsgQueueHandle =  osMessageQueueNew (16, sizeof(can_msg_t), &rover.canMsgQueue_attributes);
+	rover.canMsgQueueHandle =  osMessageQueueNew (CAN_QUEUE_SIZE, sizeof(can_msg_t), &rover.canMsgQueue_attributes);
+	rover.can_sender.xQueue = rover.canMsgQueueHandle;
 	Rover_StatusTypeDef status = ROVER_ERROR;
 	if ((encoder_init(&rover.encoder1, &rover.encoder1_config)== ENCODER_OK) &&
 			(encoder_init(&rover.encoder2, &rover.encoder2_config) == ENCODER_OK) &&
 			(encoder_init(&rover.encoder3, &rover.encoder3_config) == ENCODER_OK) &&
 			(encoder_init(&rover.encoder4, &rover.encoder4_config) == ENCODER_OK) &&
-			(MPU60X0_init(&rover.mpu, &rover.mpu_config, HAL_MAX_DELAY) == MPU60X0_OK) &&
+			(stop_all_motors() == MOTOR_OK )&&
+			(Start_PWM_Channels() == HAL_OK ) &&
+			//(MPU60X0_init(&rover.mpu, &rover.mpu_config, HAL_MAX_DELAY) == MPU60X0_OK) &&
 			(canManager_Init(&rover.can_manager) == CAN_MANAGER_OK) &&
 			(canManager_AddAllowedId(&rover.can_manager, TEST_ID) == CAN_MANAGER_OK) &&
 			(canManager_AddAllowedId(&rover.can_manager, LIN_VEL_XY_FEEDBACK_MSG_ID) == CAN_MANAGER_OK) &&
 			(canManager_AddAllowedId(&rover.can_manager, IMU_GYRO_XY_FEEDBACK_MSG_ID) == CAN_MANAGER_OK) &&
 			(canManager_AddAllowedId(&rover.can_manager, IMU_ACCEL_XY_FEEDBACK_MSG_ID) == CAN_MANAGER_OK) &&
-			(canManager_AddAllowedId(&rover.can_manager, IMU_Z_FEEDBACK_MSG_ID) == CAN_MANAGER_OK) &&
-			(can_sender_init(&rover.can_sender, &rover.can_manager, rover.canMsgQueueHandle)) == CAN_SENDER_OK)
+			(canManager_AddAllowedId(&rover.can_manager, IMU_Z_FEEDBACK_MSG_ID) == CAN_MANAGER_OK)) // &&
+			//(can_sender_init(&rover.can_sender, &rover.can_manager, rover.canMsgQueueHandle)) == CAN_SENDER_OK)
 	{
 		status = ROVER_OK;
 	}

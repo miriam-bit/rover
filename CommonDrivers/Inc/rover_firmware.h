@@ -89,7 +89,7 @@ typedef StaticQueue_t osStaticMessageQDef_t;
 /**
  * @brief Size of the CAN message queue.
  */
-#define CAN_QUEUE_SIZE  10
+#define CAN_QUEUE_SIZE  16
 
 
 /**
