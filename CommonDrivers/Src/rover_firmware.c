@@ -126,6 +126,8 @@ Rover_StatusTypeDef rover_init(void){
 			(encoder_init(&rover.encoder3, &rover.encoder3_config) == ENCODER_OK) &&
 			(encoder_init(&rover.encoder4, &rover.encoder4_config) == ENCODER_OK) &&
 			(__imu_init() == ROVER_OK) &&
+			(Start_PWM_Channels()== HAL_OK) &&
+			(stop_all_motors() == MOTOR_OK) &&
 			(canManager_Init(&rover.can_manager) == CAN_MANAGER_OK) &&
 			(canManager_AddAllowedId(&rover.can_manager, TEST_ID) == CAN_MANAGER_OK) &&
 			(canManager_AddAllowedId(&rover.can_manager, LIN_VEL_XY_FEEDBACK_MSG_ID) == CAN_MANAGER_OK) &&
