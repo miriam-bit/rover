@@ -17,6 +17,18 @@
 #include "canManager.h"
 #include "can_sender.h"
 
+/* ============================ */
+/* Feature Configuration Flags */
+/* ============================ */
+
+/**
+ * @brief Enable IMU data acquisition and related CAN transmission.
+ *
+ * Define this macro to enable the update and transmission of IMU data (MPU60X0).
+ * If undefined, IMU readings and their related CAN operations will be skipped.
+ */
+//#define USE_MPU
+
 /**
  * @brief Type definition for rover status codes.
  *

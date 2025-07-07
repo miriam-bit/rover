@@ -105,6 +105,18 @@ rover_t* const rover_get_instance() {
     return instance;
 }
 
+
+static inline Rover_StatusTypeDef __imu_init(){
+	Rover_StatusTypeDef status = ROVER_OK;
+	#ifdef USE_MPU
+	status = ROVER_ERROR;
+	if(MPU60X0_init(&rover.mpu, &rover.mpu_config, HAL_MAX_DELAY) == MPU60X0_OK){
+		status = ROVER_OK;
+	}
+	#endif // USE_MPU
+	return status;
+}
+
 Rover_StatusTypeDef rover_init(void){
 	rover.canMsgQueueHandle =  osMessageQueueNew (CAN_QUEUE_SIZE, sizeof(can_msg_t), &rover.canMsgQueue_attributes);
 	rover.can_sender.xQueue = rover.canMsgQueueHandle;
@@ -113,9 +125,7 @@ Rover_StatusTypeDef rover_init(void){
 			(encoder_init(&rover.encoder2, &rover.encoder2_config) == ENCODER_OK) &&
 			(encoder_init(&rover.encoder3, &rover.encoder3_config) == ENCODER_OK) &&
 			(encoder_init(&rover.encoder4, &rover.encoder4_config) == ENCODER_OK) &&
-			(stop_all_motors() == MOTOR_OK )&&
-			(Start_PWM_Channels() == HAL_OK ) &&
-			//(MPU60X0_init(&rover.mpu, &rover.mpu_config, HAL_MAX_DELAY) == MPU60X0_OK) &&
+			(__imu_init() == ROVER_OK) &&
 			(canManager_Init(&rover.can_manager) == CAN_MANAGER_OK) &&
 			(canManager_AddAllowedId(&rover.can_manager, TEST_ID) == CAN_MANAGER_OK) &&
 			(canManager_AddAllowedId(&rover.can_manager, LIN_VEL_XY_FEEDBACK_MSG_ID) == CAN_MANAGER_OK) &&
@@ -224,7 +234,9 @@ Rover_StatusTypeDef rover_enc_can_tx_step(void){
 }
 
 Rover_StatusTypeDef rover_imu_can_tx_step(void){
-	Rover_StatusTypeDef status = ROVER_ERROR;
+	Rover_StatusTypeDef status = ROVER_OK;
+	#ifdef USE_MPU
+	status = ROVER_ERROR;
 	can_msg_t gyro_msg, accel_msg, z_msg;
 	uint8_t gyro_frame[IMU_FRAME_LENGTH_IN_BYTE];
 	uint8_t accel_frame[IMU_FRAME_LENGTH_IN_BYTE];
@@ -255,8 +267,8 @@ Rover_StatusTypeDef rover_imu_can_tx_step(void){
 	        status = ROVER_OK;
 	    }
 	}
+	#endif // USE_MPU
 	return status;
-
 }
 
 Rover_StatusTypeDef rover_can_tx_step(void){
