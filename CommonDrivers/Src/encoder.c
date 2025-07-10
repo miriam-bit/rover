@@ -15,11 +15,10 @@ Encoder_StatusTypeDef encoder_init(encoder_t * encoder,
     }
 
     encoder->config            = config;
-    encoder->last_tick_count   = __HAL_TIM_GET_COUNTER(config->htim);
     encoder->actual_speed_rpm  = 0.0;
     encoder->rotation_status   = DEFAULT_DIRECTION;
     HAL_TIM_Encoder_Start(config->htim, TIM_CHANNEL_ALL);
-
+    encoder->last_tick_count   = __HAL_TIM_GET_COUNTER(config->htim);
     return ENCODER_OK;
 }
 
@@ -36,6 +35,7 @@ Encoder_StatusTypeDef encoder_update_speed(encoder_t * encoder)
 
     uint32_t counter1 = encoder->last_tick_count;
     uint32_t counter2 = __HAL_TIM_GET_COUNTER(htim);
+    uint8_t backward = __HAL_TIM_IS_TIM_COUNTING_DOWN(htim);
     int32_t delta = 0;
 
     if (counter2 == counter1)
@@ -43,7 +43,7 @@ Encoder_StatusTypeDef encoder_update_speed(encoder_t * encoder)
         delta = 0;
         encoder->rotation_status = DEFAULT_DIRECTION;
     }
-    else if (__HAL_TIM_IS_TIM_COUNTING_DOWN(htim))
+    else if (backward==1)
     {
         if (counter2 < counter1)
         {
@@ -73,6 +73,12 @@ Encoder_StatusTypeDef encoder_update_speed(encoder_t * encoder)
                                           encoder->config->n_channels);
 
     encoder->actual_speed_rpm = ((double)delta * 60.0) / (ticks_per_rev * encoder->config->sampling_time);
+    if((fabs(encoder->actual_speed_rpm) > 180.0f) || (fabs(encoder->actual_speed_rpm) < 0.1f)){
+    	encoder->actual_speed_rpm = 0.0f;
+    }
+    if(encoder->rotation_status == BACKWARD_DIRECTION){
+    	encoder->actual_speed_rpm *= -1;
+    }
     encoder->last_tick_count = counter2;
 
     return ENCODER_OK;

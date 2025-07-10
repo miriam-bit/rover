@@ -18,7 +18,7 @@
  * @return uint8_t 1 if summation should be stopped, 0 otherwise.
  */
 static inline uint8_t __stop_summation(double u, double e, double ukmax, double ukmin){
-    return ((u > ukmax && e > 0) || (u < ukmin && e < 0));
+    return ((u >= ukmax && e > 0) || (u <= ukmin && e < 0));
 }
 
 /**

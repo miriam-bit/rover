@@ -125,6 +125,10 @@ Rover_StatusTypeDef rover_init(void){
 			(encoder_init(&rover.encoder2, &rover.encoder2_config) == ENCODER_OK) &&
 			(encoder_init(&rover.encoder3, &rover.encoder3_config) == ENCODER_OK) &&
 			(encoder_init(&rover.encoder4, &rover.encoder4_config) == ENCODER_OK) &&
+			(pid_init(&rover.pid_ant_sx, PID_ANT_SX_KP_FAST, PID_ANT_SX_KI_FAST, PID_ANT_SX_KD_FAST, UK_MIN, UK_MAX) == PID_OK) &&
+			(pid_init(&rover.pid_pos_sx, PID_POS_SX_KP_FAST, PID_POS_SX_KI_FAST, PID_POS_SX_KD_FAST, UK_MIN, UK_MAX) == PID_OK) &&
+			(pid_init(&rover.pid_ant_dx, PID_ANT_DX_KP_FAST, PID_ANT_DX_KI_FAST, PID_ANT_DX_KD_FAST, UK_MIN, UK_MAX) == PID_OK) &&
+			(pid_init(&rover.pid_pos_dx, PID_POS_DX_KP_FAST, PID_POS_DX_KI_FAST, PID_POS_DX_KD_FAST, UK_MIN, UK_MAX) == PID_OK) &&
 			(__imu_init() == ROVER_OK) &&
 			(Start_PWM_Channels()== HAL_OK) &&
 			(stop_all_motors() == MOTOR_OK) &&
@@ -177,6 +181,7 @@ Motor_StatusTypeDef motor_control_step(void){
         (encoder_update_speed(&rover.encoder3) == ENCODER_OK) &&
         (encoder_update_speed(&rover.encoder4) == ENCODER_OK))
     {
+    	rover_pid_control();
         status = MOTOR_OK;
     }
 
@@ -191,6 +196,43 @@ void drive_motor(TIM_HandleTypeDef* timer,HAL_TIM_ActiveChannel channel, double 
 	}
 }
 
+void rover_pid_control(void)
+{
+
+    double u_fl = 0, u_fr = 0, u_rl = 0, u_rr = 0;
+
+    double e_fl = rover.reference_fl_rpm - rover.encoder1.actual_speed_rpm;
+    double e_rl = rover.reference_rl_rpm - rover.encoder2.actual_speed_rpm;
+    double e_fr = rover.reference_fr_rpm - rover.encoder3.actual_speed_rpm;
+    double e_rr = rover.reference_rr_rpm - rover.encoder4.actual_speed_rpm;
+
+    pid_calculate_output(&rover.pid_ant_sx, e_fl, &u_fl);
+    pid_calculate_output(&rover.pid_ant_dx, e_fr, &u_fr);
+    pid_calculate_output(&rover.pid_pos_sx, e_rl, &u_rl);
+    pid_calculate_output(&rover.pid_pos_dx, e_rr, &u_rr);
+
+
+    /*if(rover.reference_fl_rpm == 0){
+    	u_fl = 0.0f;
+    }
+
+    if(rover.reference_rl_rpm == 0){
+        u_rl = 0.0f;
+    }
+
+    if(rover.reference_fr_rpm == 0){
+        u_fr = 0.0f;
+    }
+
+    if(rover.reference_rr_rpm == 0){
+        u_rr = 0.0f;
+    }
+     */
+    drive_motor(rover.motor_timer, TIM_CHANNEL_1, u_rl);
+    drive_motor(rover.motor_timer, TIM_CHANNEL_3, u_fl);
+    drive_motor(rover.motor_timer, TIM_CHANNEL_2, u_rr);
+    drive_motor(rover.motor_timer, TIM_CHANNEL_4, u_fr);
+}
 
 Rover_StatusTypeDef rover_get_linear_velocity_xy(double Ts){
 	Rover_StatusTypeDef status = ROVER_ERROR;
@@ -221,6 +263,7 @@ Rover_StatusTypeDef rover_enc_can_tx_step(void){
 	uint8_t can_frame[LIN_VEL_FRAME_LENGTH_IN_BYTE];
 	can_msg_t message;
 	if (motor_control_step() == MOTOR_OK) {
+		#ifdef USE_CAN_TX
 		if (rover_get_linear_velocity_xy(ENCODER_SAMPLING_TIME) == ROVER_OK) {
 			setLinVel(&vel_data, rover.vx, rover.vy);
 			if (LinVelFeedback_createXYFrame(&vel_data, can_frame) == LIN_VEL_FEEDBACK_OK) {
@@ -231,6 +274,9 @@ Rover_StatusTypeDef rover_enc_can_tx_step(void){
 				}
 			}
 		}
+		#else
+			status = ROVER_OK;
+		#endif
 	}
 	return status;
 }
@@ -274,9 +320,12 @@ Rover_StatusTypeDef rover_imu_can_tx_step(void){
 }
 
 Rover_StatusTypeDef rover_can_tx_step(void){
-	Rover_StatusTypeDef status = ROVER_ERROR;
+	Rover_StatusTypeDef status = ROVER_OK;
+	#ifdef USE_CAN_TX
+	status = ROVER_ERROR;
 	if(can_sender_dequeue_msg(&rover.can_sender) == CAN_SENDER_OK){
 		status = ROVER_OK;
 	}
+	#endif
 	return status;
 }

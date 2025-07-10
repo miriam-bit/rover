@@ -16,6 +16,8 @@
 #include "math.h"
 #include "canManager.h"
 #include "can_sender.h"
+#include "pid_regulator.h"
+#include "regulators_params.h"
 
 /* ============================ */
 /* Feature Configuration Flags */
@@ -28,6 +30,9 @@
  * If undefined, IMU readings and their related CAN operations will be skipped.
  */
 //#define USE_MPU
+
+
+//#define USE_CAN_TX
 
 /**
  * @brief Type definition for rover status codes.
@@ -76,6 +81,10 @@ typedef StaticQueue_t osStaticMessageQDef_t;
  * @brief PWM tension corresponding to a stopped motor (in volts).
  */
 #define STOP_PWM_TENSION    						(2.525)
+
+#define UK_MAX              (12) /**< The maximum value for the control input. */
+
+#define UK_MIN              (-UK_MAX) /**< The minimum value for the control input. */
 
 /**
  * @brief Maximum allowed PWM tension.
@@ -141,6 +150,17 @@ typedef struct
     encoder_config_t encoder2_config;	/**< Configuration for encoder 2 */
     encoder_config_t encoder3_config;	/**< Configuration for encoder 3 */
     encoder_config_t encoder4_config;	/**< Configuration for encoder 4 */
+
+    pid_t pid_ant_sx;
+    pid_t pid_pos_sx;
+    pid_t pid_ant_dx;
+    pid_t pid_pos_dx;
+
+    double reference_fl_rpm;
+    double reference_rl_rpm;
+    double reference_fr_rpm;
+    double reference_rr_rpm;
+
 
     TIM_HandleTypeDef *motor_timer;	/**< Timer used for motor PWM control */
 
@@ -226,6 +246,7 @@ Encoder_StatusTypeDef motor_control_step(void);
  * @param desiredValue Desired control value to apply to the motor.
  *
  */
+
 void drive_motor(TIM_HandleTypeDef* timer,HAL_TIM_ActiveChannel channel, double desiredValue);
 
 /**
@@ -242,6 +263,9 @@ void drive_motor(TIM_HandleTypeDef* timer,HAL_TIM_ActiveChannel channel, double 
  * @return ROVER_OK if computation is successful, otherwise ROVER_ERROR.
  *
  */
+
+void rover_pid_control(void);
+
 Rover_StatusTypeDef rover_get_linear_velocity_xy(double Ts);
 
 /**
