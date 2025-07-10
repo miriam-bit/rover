@@ -121,10 +121,10 @@ Rover_StatusTypeDef rover_init(void){
 	rover.canMsgQueueHandle =  osMessageQueueNew (CAN_QUEUE_SIZE, sizeof(can_msg_t), &rover.canMsgQueue_attributes);
 	rover.can_sender.xQueue = rover.canMsgQueueHandle;
 	Rover_StatusTypeDef status = ROVER_ERROR;
-	if ((encoder_init(&rover.encoder1, &rover.encoder1_config)== ENCODER_OK) &&
-			(encoder_init(&rover.encoder2, &rover.encoder2_config) == ENCODER_OK) &&
-			(encoder_init(&rover.encoder3, &rover.encoder3_config) == ENCODER_OK) &&
-			(encoder_init(&rover.encoder4, &rover.encoder4_config) == ENCODER_OK) &&
+	if ((encoder_init(&rover.encoder_fl, &rover.encoder1_config)== ENCODER_OK) &&
+			(encoder_init(&rover.encoder_rl, &rover.encoder2_config) == ENCODER_OK) &&
+			(encoder_init(&rover.encoder_fr, &rover.encoder3_config) == ENCODER_OK) &&
+			(encoder_init(&rover.encoder_rr, &rover.encoder4_config) == ENCODER_OK) &&
 			(pid_init(&rover.pid_ant_sx, PID_ANT_SX_KP_FAST, PID_ANT_SX_KI_FAST, PID_ANT_SX_KD_FAST, UK_MIN, UK_MAX) == PID_OK) &&
 			(pid_init(&rover.pid_pos_sx, PID_POS_SX_KP_FAST, PID_POS_SX_KI_FAST, PID_POS_SX_KD_FAST, UK_MIN, UK_MAX) == PID_OK) &&
 			(pid_init(&rover.pid_ant_dx, PID_ANT_DX_KP_FAST, PID_ANT_DX_KI_FAST, PID_ANT_DX_KD_FAST, UK_MIN, UK_MAX) == PID_OK) &&
@@ -176,10 +176,10 @@ Motor_StatusTypeDef stop_all_motors(void){
 Motor_StatusTypeDef motor_control_step(void){
 	Motor_StatusTypeDef status = MOTOR_ERROR;
 
-    if ((encoder_update_speed(&rover.encoder1) == ENCODER_OK) &&
-        (encoder_update_speed(&rover.encoder2) == ENCODER_OK) &&
-        (encoder_update_speed(&rover.encoder3) == ENCODER_OK) &&
-        (encoder_update_speed(&rover.encoder4) == ENCODER_OK))
+    if ((encoder_update_speed(&rover.encoder_fl) == ENCODER_OK) &&
+        (encoder_update_speed(&rover.encoder_rl) == ENCODER_OK) &&
+        (encoder_update_speed(&rover.encoder_fr) == ENCODER_OK) &&
+        (encoder_update_speed(&rover.encoder_rr) == ENCODER_OK))
     {
     	rover_pid_control();
         status = MOTOR_OK;
@@ -201,10 +201,10 @@ void rover_pid_control(void)
 
     double u_fl = 0, u_fr = 0, u_rl = 0, u_rr = 0;
 
-    double e_fl = rover.reference_fl_rpm - rover.encoder1.actual_speed_rpm;
-    double e_rl = rover.reference_rl_rpm - rover.encoder2.actual_speed_rpm;
-    double e_fr = rover.reference_fr_rpm - rover.encoder3.actual_speed_rpm;
-    double e_rr = rover.reference_rr_rpm - rover.encoder4.actual_speed_rpm;
+    double e_fl = rover.reference_fl_rpm - rover.encoder_fl.actual_speed_rpm;
+    double e_rl = rover.reference_rl_rpm - rover.encoder_rl.actual_speed_rpm;
+    double e_fr = rover.reference_fr_rpm - rover.encoder_fr.actual_speed_rpm;
+    double e_rr = rover.reference_rr_rpm - rover.encoder_rr.actual_speed_rpm;
 
     pid_calculate_output(&rover.pid_ant_sx, e_fl, &u_fl);
     pid_calculate_output(&rover.pid_ant_dx, e_fr, &u_fr);
@@ -238,10 +238,10 @@ Rover_StatusTypeDef rover_get_linear_velocity_xy(double Ts){
 	Rover_StatusTypeDef status = ROVER_ERROR;
 	static double theta = 0.0;
 	if(Ts >= 0.0){
-		double rpm_fl = rover.encoder1.actual_speed_rpm;
-		double rpm_rl = rover.encoder2.actual_speed_rpm;
-		double rpm_fr = rover.encoder3.actual_speed_rpm;
-		double rpm_rr = rover.encoder4.actual_speed_rpm;
+		double rpm_fl = rover.encoder_fl.actual_speed_rpm;
+		double rpm_rl = rover.encoder_rl.actual_speed_rpm;
+		double rpm_fr = rover.encoder_fr.actual_speed_rpm;
+		double rpm_rr = rover.encoder_rr.actual_speed_rpm;
 		double vel_left  = ((rpm_fl + rpm_rl) / 2.0) * WHEEL_RADIUS_M * RPM_TO_RAD_PER_SEC;
 		double vel_right =  ((rpm_fr + rpm_rr) / 2.0) * WHEEL_RADIUS_M * RPM_TO_RAD_PER_SEC;
 		double v = (vel_right + vel_left) / 2.0;

@@ -141,10 +141,10 @@ typedef StaticQueue_t osStaticMessageQDef_t;
  */
 typedef struct
 {
-    encoder_t encoder1;	/**< Encoder for front-left wheel */
-    encoder_t encoder2;	/**< Encoder for rear-left wheel */
-    encoder_t encoder3;	/**< Encoder for front-right wheel */
-    encoder_t encoder4;	/**< Encoder for rear-right wheel */
+    encoder_t encoder_fl;	/**< Encoder for front-left wheel */
+    encoder_t encoder_rl;	/**< Encoder for rear-left wheel */
+    encoder_t encoder_fr;	/**< Encoder for front-right wheel */
+    encoder_t encoder_rr;	/**< Encoder for rear-right wheel */
 
     encoder_config_t encoder1_config;	/**< Configuration for encoder 1 */
     encoder_config_t encoder2_config;	/**< Configuration for encoder 2 */
