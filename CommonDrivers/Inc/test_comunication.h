@@ -84,7 +84,7 @@ typedef uint8_t LinVelFeedback_Status_TypeDef;
 #define TEST_LENGHT_IN_BYTE 	     (8U)
 #define IMU_FRAME_LENGTH_IN_BYTE     (8U)	/**< Size of IMU feedback frame in bytes */
 #define LIN_VEL_FRAME_LENGTH_IN_BYTE (8U)	/**< Size of linear velocity frame in bytes */
-#define RPM_REFERENCE_FRAME_LENGTH   (4U)	/**< Size of RPM reference frame in bytes */
+#define RPM_REFERENCE_FRAME_LENGTH   (8U)	/**< Size of RPM reference frame in bytes */
 
 typedef struct {
     uint32_t value;

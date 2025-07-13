@@ -91,6 +91,15 @@ typedef StaticQueue_t osStaticMessageQDef_t;
  */
 #define MAX_PWM_TENSION								(3.3)
 
+#define TIM_PWM_RL TIM_CHANNEL_1
+
+#define TIM_PWM_RR TIM_CHANNEL_2
+
+#define TIM_PWM_FL TIM_CHANNEL_3
+
+#define TIM_PWM_FR TIM_CHANNEL_4
+
+
 /**
  * @brief Wheel radius in meters.
  */
@@ -156,11 +165,10 @@ typedef struct
     pid_t pid_ant_dx;
     pid_t pid_pos_dx;
 
-    double reference_fl_rpm;
-    double reference_rl_rpm;
-    double reference_fr_rpm;
-    double reference_rr_rpm;
-
+    int16_t reference_fl_rpm;
+    int16_t reference_rl_rpm;
+    int16_t reference_fr_rpm;
+    int16_t reference_rr_rpm;
 
     TIM_HandleTypeDef *motor_timer;	/**< Timer used for motor PWM control */
 

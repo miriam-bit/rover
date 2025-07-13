@@ -148,10 +148,10 @@ Rover_StatusTypeDef rover_init(void){
 HAL_StatusTypeDef Start_PWM_Channels(void){
 	HAL_StatusTypeDef status = HAL_ERROR;
 
-	if ((rover.motor_timer != NULL) &&(HAL_TIM_PWM_Start(rover.motor_timer, TIM_CHANNEL_1) == HAL_OK) &&
-		(HAL_TIM_PWM_Start(rover.motor_timer, TIM_CHANNEL_2) == HAL_OK) &&
-		(HAL_TIM_PWM_Start(rover.motor_timer, TIM_CHANNEL_3) == HAL_OK) &&
-		(HAL_TIM_PWM_Start(rover.motor_timer, TIM_CHANNEL_4) == HAL_OK))
+	if ((rover.motor_timer != NULL) &&(HAL_TIM_PWM_Start(rover.motor_timer, TIM_PWM_RL) == HAL_OK) &&
+		(HAL_TIM_PWM_Start(rover.motor_timer, TIM_PWM_RR) == HAL_OK) &&
+		(HAL_TIM_PWM_Start(rover.motor_timer, TIM_PWM_FL) == HAL_OK) &&
+		(HAL_TIM_PWM_Start(rover.motor_timer, TIM_PWM_FR) == HAL_OK))
 	{
     status = HAL_OK;
 	}
@@ -163,10 +163,10 @@ Motor_StatusTypeDef stop_all_motors(void){
 
 	if (rover.motor_timer != NULL)
 	{
-		drive_motor(rover.motor_timer, TIM_CHANNEL_1, 0);
-		drive_motor(rover.motor_timer, TIM_CHANNEL_2, 0);
-		drive_motor(rover.motor_timer, TIM_CHANNEL_3, 0);
-		drive_motor(rover.motor_timer, TIM_CHANNEL_4, 0);
+		drive_motor(rover.motor_timer, TIM_PWM_RL, 0);
+		drive_motor(rover.motor_timer, TIM_PWM_RR, 0);
+		drive_motor(rover.motor_timer, TIM_PWM_FL, 0);
+		drive_motor(rover.motor_timer, TIM_PWM_FR, 0);
 
 		status = MOTOR_OK;
 	}
@@ -211,27 +211,10 @@ void rover_pid_control(void)
     pid_calculate_output(&rover.pid_pos_sx, e_rl, &u_rl);
     pid_calculate_output(&rover.pid_pos_dx, e_rr, &u_rr);
 
-
-    /*if(rover.reference_fl_rpm == 0){
-    	u_fl = 0.0f;
-    }
-
-    if(rover.reference_rl_rpm == 0){
-        u_rl = 0.0f;
-    }
-
-    if(rover.reference_fr_rpm == 0){
-        u_fr = 0.0f;
-    }
-
-    if(rover.reference_rr_rpm == 0){
-        u_rr = 0.0f;
-    }
-     */
-    drive_motor(rover.motor_timer, TIM_CHANNEL_1, u_rl);
-    drive_motor(rover.motor_timer, TIM_CHANNEL_3, u_fl);
-    drive_motor(rover.motor_timer, TIM_CHANNEL_2, u_rr);
-    drive_motor(rover.motor_timer, TIM_CHANNEL_4, u_fr);
+    drive_motor(rover.motor_timer, TIM_PWM_RL, u_rl);
+    drive_motor(rover.motor_timer, TIM_PWM_FL, u_fl);
+    drive_motor(rover.motor_timer, TIM_PWM_RR, u_rr);
+    drive_motor(rover.motor_timer, TIM_PWM_FR, u_fr);
 }
 
 Rover_StatusTypeDef rover_get_linear_velocity_xy(double Ts){
