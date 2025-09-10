@@ -125,20 +125,20 @@ Rover_StatusTypeDef rover_init(void){
 			(encoder_init(&rover.encoder_rl, &rover.encoder2_config) == ENCODER_OK) &&
 			(encoder_init(&rover.encoder_fr, &rover.encoder3_config) == ENCODER_OK) &&
 			(encoder_init(&rover.encoder_rr, &rover.encoder4_config) == ENCODER_OK) &&
-			(pid_init(&rover.pid_ant_sx, PID_ANT_SX_KP_FAST, PID_ANT_SX_KI_FAST, PID_ANT_SX_KD_FAST, UK_MIN, UK_MAX) == PID_OK) &&
-			(pid_init(&rover.pid_pos_sx, PID_POS_SX_KP_FAST, PID_POS_SX_KI_FAST, PID_POS_SX_KD_FAST, UK_MIN, UK_MAX) == PID_OK) &&
-			(pid_init(&rover.pid_ant_dx, PID_ANT_DX_KP_FAST, PID_ANT_DX_KI_FAST, PID_ANT_DX_KD_FAST, UK_MIN, UK_MAX) == PID_OK) &&
-			(pid_init(&rover.pid_pos_dx, PID_POS_DX_KP_FAST, PID_POS_DX_KI_FAST, PID_POS_DX_KD_FAST, UK_MIN, UK_MAX) == PID_OK) &&
+			(pid_init(&rover.pid_fl, PID_ANT_SX_KP_FAST, PID_ANT_SX_KI_FAST, PID_ANT_SX_KD_FAST, UK_MIN, UK_MAX) == PID_OK) &&
+			(pid_init(&rover.pid_rl, PID_POS_SX_KP_FAST, PID_POS_SX_KI_FAST, PID_POS_SX_KD_FAST, UK_MIN, UK_MAX) == PID_OK) &&
+			(pid_init(&rover.pid_fr, PID_ANT_DX_KP_FAST, PID_ANT_DX_KI_FAST, PID_ANT_DX_KD_FAST, UK_MIN, UK_MAX) == PID_OK) &&
+			(pid_init(&rover.pid_rr, PID_POS_DX_KP_FAST, PID_POS_DX_KI_FAST, PID_POS_DX_KD_FAST, UK_MIN, UK_MAX) == PID_OK) &&
 			(__imu_init() == ROVER_OK) &&
 			(Start_PWM_Channels()== HAL_OK) &&
 			(stop_all_motors() == MOTOR_OK) &&
 			(canManager_Init(&rover.can_manager) == CAN_MANAGER_OK) &&
-			(canManager_AddAllowedId(&rover.can_manager, TEST_ID) == CAN_MANAGER_OK) &&
+			(canManager_AddAllowedId(&rover.can_manager, RPM_REFERENCE_MSG_ID) == CAN_MANAGER_OK) &&
 			(canManager_AddAllowedId(&rover.can_manager, LIN_VEL_XY_FEEDBACK_MSG_ID) == CAN_MANAGER_OK) &&
 			(canManager_AddAllowedId(&rover.can_manager, IMU_GYRO_XY_FEEDBACK_MSG_ID) == CAN_MANAGER_OK) &&
 			(canManager_AddAllowedId(&rover.can_manager, IMU_ACCEL_XY_FEEDBACK_MSG_ID) == CAN_MANAGER_OK) &&
-			(canManager_AddAllowedId(&rover.can_manager, IMU_Z_FEEDBACK_MSG_ID) == CAN_MANAGER_OK)) // &&
-			//(can_sender_init(&rover.can_sender, &rover.can_manager, rover.canMsgQueueHandle)) == CAN_SENDER_OK)
+			(canManager_AddAllowedId(&rover.can_manager, IMU_Z_FEEDBACK_MSG_ID) == CAN_MANAGER_OK) &&
+			(can_sender_init(&rover.can_sender, &rover.can_manager, rover.canMsgQueueHandle) == CAN_SENDER_OK))
 	{
 		status = ROVER_OK;
 	}
@@ -206,15 +206,24 @@ void rover_pid_control(void)
     double e_fr = rover.reference_fr_rpm - rover.encoder_fr.actual_speed_rpm;
     double e_rr = rover.reference_rr_rpm - rover.encoder_rr.actual_speed_rpm;
 
-    pid_calculate_output(&rover.pid_ant_sx, e_fl, &u_fl);
-    pid_calculate_output(&rover.pid_ant_dx, e_fr, &u_fr);
-    pid_calculate_output(&rover.pid_pos_sx, e_rl, &u_rl);
-    pid_calculate_output(&rover.pid_pos_dx, e_rr, &u_rr);
+    pid_calculate_output(&rover.pid_fl, e_fl, &u_fl);
+    pid_calculate_output(&rover.pid_fr, e_fr, &u_fr);
+    pid_calculate_output(&rover.pid_rl, e_rl, &u_rl);
+    pid_calculate_output(&rover.pid_rr, e_rr, &u_rr);
 
     drive_motor(rover.motor_timer, TIM_PWM_RL, u_rl);
     drive_motor(rover.motor_timer, TIM_PWM_FL, u_fl);
     drive_motor(rover.motor_timer, TIM_PWM_RR, u_rr);
     drive_motor(rover.motor_timer, TIM_PWM_FR, u_fr);
+}
+
+
+int16_t saturate_rpm(int16_t value)
+{
+
+    if (value > MAX_RPM) return MAX_RPM;
+    if (value < MIN_RPM) return MIN_RPM;
+    return value;
 }
 
 Rover_StatusTypeDef rover_get_linear_velocity_xy(double Ts){

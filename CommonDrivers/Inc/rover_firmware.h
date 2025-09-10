@@ -32,7 +32,7 @@
 //#define USE_MPU
 
 
-//#define USE_CAN_TX
+#define USE_CAN_TX
 
 /**
  * @brief Type definition for rover status codes.
@@ -82,21 +82,39 @@ typedef StaticQueue_t osStaticMessageQDef_t;
  */
 #define STOP_PWM_TENSION    						(2.525)
 
-#define UK_MAX              (12) /**< The maximum value for the control input. */
+/**
+ * @brief Maximum value for the control signal applied to motors.
+ */
+#define UK_MAX              (12)
 
-#define UK_MIN              (-UK_MAX) /**< The minimum value for the control input. */
+/**
+ * @brief Minimum value for the control signal applied to motors.
+ */
+#define UK_MIN              (-UK_MAX)
 
 /**
  * @brief Maximum allowed PWM tension.
  */
-#define MAX_PWM_TENSION								(3.3)
+#define MAX_PWM_TENSION		(3.3)
 
+/**
+ * @brief PWM channel for rear-left motor.
+ */
 #define TIM_PWM_RL TIM_CHANNEL_1
 
+/**
+ * @brief PWM channel for rear-right motor.
+ */
 #define TIM_PWM_RR TIM_CHANNEL_2
 
+/**
+ * @brief PWM channel for front-left motor.
+ */
 #define TIM_PWM_FL TIM_CHANNEL_3
 
+/**
+ * @brief PWM channel for front-right motor.
+ */
 #define TIM_PWM_FR TIM_CHANNEL_4
 
 
@@ -121,7 +139,6 @@ typedef StaticQueue_t osStaticMessageQDef_t;
  */
 #define CAN_QUEUE_SIZE  16
 
-
 /**
  * @brief Operation completed successfully.
  */
@@ -142,6 +159,9 @@ typedef StaticQueue_t osStaticMessageQDef_t;
  */
 #define MOTOR_ERROR   ((Motor_StatusTypeDef)1U)
 
+#define MAX_RPM 167
+
+#define MIN_RPM -167
 /**
  * @brief Structure representing the full state and configuration of the rover.
  *
@@ -160,15 +180,15 @@ typedef struct
     encoder_config_t encoder3_config;	/**< Configuration for encoder 3 */
     encoder_config_t encoder4_config;	/**< Configuration for encoder 4 */
 
-    pid_t pid_ant_sx;
-    pid_t pid_pos_sx;
-    pid_t pid_ant_dx;
-    pid_t pid_pos_dx;
+    pid_t pid_fl;  /**< PID regulator for front-left motor */
+    pid_t pid_rl;  /**< PID regulator for rear-left motor */
+    pid_t pid_fr;  /**< PID regulator for front-right motor */
+    pid_t pid_rr;  /**< PID regulator for rear-right motor */
 
-    int16_t reference_fl_rpm;
-    int16_t reference_rl_rpm;
-    int16_t reference_fr_rpm;
-    int16_t reference_rr_rpm;
+    int16_t reference_fl_rpm; /**< Reference RPM for front-left motor */
+    int16_t reference_rl_rpm; /**< Reference RPM for rear-left motor */
+    int16_t reference_fr_rpm; /**< Reference RPM for front-right motor */
+    int16_t reference_rr_rpm; /**< Reference RPM for rear-right motor */
 
     TIM_HandleTypeDef *motor_timer;	/**< Timer used for motor PWM control */
 
@@ -254,8 +274,37 @@ Encoder_StatusTypeDef motor_control_step(void);
  * @param desiredValue Desired control value to apply to the motor.
  *
  */
-
 void drive_motor(TIM_HandleTypeDef* timer,HAL_TIM_ActiveChannel channel, double desiredValue);
+
+/**
+ * @brief Executes one control cycle of the rover's motor PID regulators.
+ *
+ * This function performs the following steps:
+ * - Computes the error between reference and actual RPM for each motor.
+ * - Uses PID controllers to calculate control efforts (`u_*`) for each motor.
+ * - Sends the computed control efforts to the motors via `drive_motor`, applying PWM signals.
+ *
+ * The PID controllers are:
+ * - `pid_ant_sx`: front-left motor
+ * - `pid_ant_dx`: front-right motor
+ * - `pid_pos_sx`: rear-left motor
+ * - `pid_pos_dx`: rear-right motor
+ *
+ * @note The `rover` structure must contain updated encoder feedback and reference values.
+ */
+void rover_pid_control(void);
+
+/**
+ * @brief Clamps an RPM value to the allowed range.
+ *
+ * This function ensures that the given RPM value stays within the limits defined
+ * by `MAX_RPM` and `MIN_RPM`. If the input exceeds these limits, it will be saturated
+ * to the closest bound.
+ *
+ * @param value The RPM value to be saturated.
+ * @return The saturated RPM value, constrained within [MIN_RPM, MAX_RPM].
+ */
+int16_t saturate_rpm(int16_t value);
 
 /**
  * @brief Computes the rover's linear velocity components (vx, vy) in global coordinates.
@@ -271,9 +320,6 @@ void drive_motor(TIM_HandleTypeDef* timer,HAL_TIM_ActiveChannel channel, double 
  * @return ROVER_OK if computation is successful, otherwise ROVER_ERROR.
  *
  */
-
-void rover_pid_control(void);
-
 Rover_StatusTypeDef rover_get_linear_velocity_xy(double Ts);
 
 /**

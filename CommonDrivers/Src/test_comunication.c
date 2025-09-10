@@ -9,39 +9,7 @@
 #include "canParser.h"
 #include "string.h"
 
-TestFeedback_Status_TypeDef TestFeedback_init(TestFeedback_t *test_data){
-	TestFeedback_Status_TypeDef status = TEST_FEEDBACK_ERR;
-		if(test_data != NULL){
-			test_data->value = 0U;
-			status = TEST_FEEDBACK_OK;
-		}
 
-		return status;
-}
-
-
-TestFeedback_Status_TypeDef setTestValue(TestFeedback_t *test_data, uint32_t value){
-	TestFeedback_Status_TypeDef status = TEST_FEEDBACK_ERR;
-			if(test_data != NULL){
-				test_data->value = value;
-				status = TEST_FEEDBACK_OK;
-			}
-
-			return status;
-
-}
-
-TestFeedback_Status_TypeDef TestFeedback_createFrame(TestFeedback_t *test_data, uint8_t *can_data){
-	TestFeedback_Status_TypeDef status = TEST_FEEDBACK_ERR;
-	if(test_data != NULL && can_data != NULL){
-		memset(can_data, 0, TEST_LENGHT_IN_BYTE);
-		if (CanParser_encode_can_frame(can_data, test_data->value, TEST_START_BIT, TEST_LENGTH , TEST_ENDIANNESS) != CAN_PARSER_STATUS_ERR){
-			status = TEST_FEEDBACK_OK;
-		}
-	}
-
-	return status;
-}
 LinVelFeedback_Status_TypeDef LinVelFeedback_init(LinVelFeedback_t *vel_data){
 	LinVelFeedback_Status_TypeDef status = LIN_VEL_FEEDBACK_ERR;
 	if(vel_data != NULL){
@@ -53,6 +21,8 @@ LinVelFeedback_Status_TypeDef LinVelFeedback_init(LinVelFeedback_t *vel_data){
 
 	return status;
 }
+
+
 LinVelFeedback_Status_TypeDef setLinVel(LinVelFeedback_t *vel_data, float x, float y){
 	LinVelFeedback_Status_TypeDef status = LIN_VEL_FEEDBACK_ERR;
 	if(vel_data != NULL){
@@ -64,6 +34,8 @@ LinVelFeedback_Status_TypeDef setLinVel(LinVelFeedback_t *vel_data, float x, flo
 
 	return status;
 }
+
+
 LinVelFeedback_Status_TypeDef LinVelFeedback_createXYFrame(LinVelFeedback_t *vel_data, uint8_t* can_data){
 	LinVelFeedback_Status_TypeDef status = LIN_VEL_FEEDBACK_ERR;
 	if(vel_data != NULL && can_data != NULL){
@@ -81,36 +53,6 @@ LinVelFeedback_Status_TypeDef LinVelFeedback_createXYFrame(LinVelFeedback_t *vel
 	return status;
 }
 
-/*
-IMUFeedback_Status_TypeDef IMUFeedback_init(Cartesian3D *imu_data){
-	IMUFeedback_Status_TypeDef status = IMU_FEEDBACK_ERR;
-	if(imu_data != NULL){
-
-		imu_data->x = 0U;
-		imu_data->y = 0U;
-		imu_data->z = 0U;
-
-		status = IMU_FEEDBACK_OK;
-	}
-
-	return status;
-
-}
-
-IMUFeedback_Status_TypeDef setIMU(Cartesian3D* imu_data, float x, float y, float z){
-	IMUFeedback_Status_TypeDef status = IMU_FEEDBACK_ERR;
-	if(imu_data != NULL){
-		imu_data->x = x;
-		imu_data->y = y;
-		imu_data->z = z;
-
-		status = IMU_FEEDBACK_OK;
-	}
-
-	return status;
-
-}
-*/
 
 IMUFeedback_Status_TypeDef IMUFeedback_createGyroXYFrame(Cartesian3D* gyro_data, uint8_t* can_data){
 	IMUFeedback_Status_TypeDef status = IMU_FEEDBACK_ERR;
@@ -131,6 +73,7 @@ IMUFeedback_Status_TypeDef IMUFeedback_createGyroXYFrame(Cartesian3D* gyro_data,
 
 }
 
+
 IMUFeedback_Status_TypeDef IMUFeedback_createAccelXYFrame(Cartesian3D* accel_data, uint8_t* can_data){
 	IMUFeedback_Status_TypeDef status = IMU_FEEDBACK_ERR;
 		if(accel_data != NULL && can_data != NULL){
@@ -148,6 +91,7 @@ IMUFeedback_Status_TypeDef IMUFeedback_createAccelXYFrame(Cartesian3D* accel_dat
 		return status;
 
 }
+
 
 IMUFeedback_Status_TypeDef IMUFeedback_createZFrame(Cartesian3D* gyro_data, Cartesian3D* accel_data, uint8_t* can_data){
 	IMUFeedback_Status_TypeDef status = IMU_FEEDBACK_ERR;

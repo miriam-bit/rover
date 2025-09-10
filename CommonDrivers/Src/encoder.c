@@ -1,3 +1,11 @@
+/**
+ * @file encoder.c
+ *
+ *
+ * Created on: Jun 4, 2024
+ * Author: Miriam Vitolo
+ */
+
 #include "encoder.h"
 #include <stddef.h>
 #include <math.h>

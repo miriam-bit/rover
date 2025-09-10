@@ -107,11 +107,17 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
 
     if (rover->can_manager.config->rx_header.StdId == RPM_REFERENCE_MSG_ID && rover->can_manager.config->rx_header.DLC == RPM_REFERENCE_FRAME_LENGTH) {
     	uint8_t* data = rover->can_manager.rx_data;
+    	int16_t fl_rpm, rl_rpm, fr_rpm, rr_rpm;
 
-        if (CanParser_decode_can_frame(data, &rover->reference_fl_rpm ,  0, 16, 1, sizeof(uint16_t)) == CAN_PARSER_STATUS_OK &&
-            CanParser_decode_can_frame(data, &rover->reference_rl_rpm, 16, 16, 1, sizeof(uint16_t)) == CAN_PARSER_STATUS_OK &&
-            CanParser_decode_can_frame(data, &rover->reference_fr_rpm , 32, 16, 1, sizeof(uint16_t)) == CAN_PARSER_STATUS_OK &&
-            CanParser_decode_can_frame(data, &rover->reference_rr_rpm, 48, 16, 1, sizeof(uint16_t)) == CAN_PARSER_STATUS_OK) {
+        if (CanParser_decode_can_frame(data, &fl_rpm ,  0, 16, 1, sizeof(int16_t)) == CAN_PARSER_STATUS_OK &&
+            CanParser_decode_can_frame(data, &rl_rpm, 16, 16, 1, sizeof(int16_t)) == CAN_PARSER_STATUS_OK &&
+            CanParser_decode_can_frame(data, &fr_rpm , 32, 16, 1, sizeof(int16_t)) == CAN_PARSER_STATUS_OK &&
+            CanParser_decode_can_frame(data, &rr_rpm, 48, 16, 1, sizeof(int16_t)) == CAN_PARSER_STATUS_OK) {
+
+        	rover->reference_fl_rpm = saturate_rpm(fl_rpm);
+        	rover->reference_rl_rpm = saturate_rpm(rl_rpm);
+        	rover->reference_fr_rpm = saturate_rpm(fr_rpm);
+        	rover->reference_rr_rpm = saturate_rpm(rr_rpm);
 
             rover->can_manager.message_received = CAN_MANAGER_RECEIVED_NEW_MESSAGE;
         }
