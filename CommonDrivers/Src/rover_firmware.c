@@ -140,6 +140,7 @@ Rover_StatusTypeDef rover_init(void){
 			(canManager_AddAllowedId(&rover.can_manager, IMU_Z_FEEDBACK_MSG_ID) == CAN_MANAGER_OK) &&
 			(can_sender_init(&rover.can_sender, &rover.can_manager, rover.canMsgQueueHandle) == CAN_SENDER_OK))
 	{
+		HAL_GPIO_WritePin(GPIOB, RELE_Pin|GPIO_PIN_13, GPIO_PIN_SET);
 		status = ROVER_OK;
 	}
 	return status;
@@ -167,6 +168,7 @@ Motor_StatusTypeDef stop_all_motors(void){
 		drive_motor(rover.motor_timer, TIM_PWM_RR, 0);
 		drive_motor(rover.motor_timer, TIM_PWM_FL, 0);
 		drive_motor(rover.motor_timer, TIM_PWM_FR, 0);
+		HAL_GPIO_WritePin(GPIOB, RELE_Pin|GPIO_PIN_13, GPIO_PIN_RESET);
 
 		status = MOTOR_OK;
 	}

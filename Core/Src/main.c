@@ -24,7 +24,6 @@
 #include "tim.h"
 #include "gpio.h"
 
-
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "rover_firmware.h"

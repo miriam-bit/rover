@@ -143,11 +143,6 @@ void MX_FREERTOS_Init(void) {
 	if(rover_init() != ROVER_OK ){
 		Error_Handler();
 	}
-	/*
-	if(Start_PWM_Channels() != HAL_OK || stop_all_motors() != MOTOR_OK ||rover_init() != ROVER_OK){
-		Error_Handler();
-	}
-	*/
   /* USER CODE END Init */
 
   /* USER CODE BEGIN RTOS_MUTEX */
@@ -225,9 +220,12 @@ void startMotorControl(void *argument)
 	for(;;)
 	{
 		vTaskDelayUntil( &xLastWakeTime, xFrequency );
+		HAL_GPIO_WritePin(GPIOF, GPIO_PIN_4, GPIO_PIN_SET);
 		if( rover_enc_can_tx_step()!= ROVER_OK){
 			Error_Handler();
 		}
+
+		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_15, GPIO_PIN_RESET);
 	}
   /* USER CODE END startMotorControl */
 }
@@ -247,9 +245,11 @@ void StartCanTxTask(void *argument)
 	xLastWakeTime = xTaskGetTickCount();
 	for (;;) {
 		vTaskDelayUntil(&xLastWakeTime, xFrequency);
-		if (rover_can_tx_step() != CAN_SENDER_OK) {
+		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_13, GPIO_PIN_SET);
+		if (rover_can_tx_step() != ROVER_OK) {
 			Error_Handler();
 		}
+		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_13, GPIO_PIN_RESET);
 	}
   /* USER CODE END StartCanTxTask */
 }
@@ -269,9 +269,11 @@ void MPUCanTxFunc(void *argument)
 	xLastWakeTime = xTaskGetTickCount();
 	for (;;){
 		vTaskDelayUntil(&xLastWakeTime, xFrequency);
+		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET);
 		if (rover_imu_can_tx_step()!= ROVER_OK) {
 			Error_Handler();
 		}
+		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET);
 	}
   /* USER CODE END MPUCanTxFunc */
 }

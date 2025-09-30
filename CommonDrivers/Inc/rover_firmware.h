@@ -132,7 +132,7 @@ typedef StaticQueue_t osStaticMessageQDef_t;
 /**
  * @brief Period of CAN message transmission in milliseconds.
  */
-#define CAN_TX_PERIOD_MS                          	(2U)
+#define CAN_TX_PERIOD_MS                          	(5U)
 
 /**
  * @brief Size of the CAN message queue.
