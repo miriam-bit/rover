@@ -71,7 +71,7 @@ const osThreadAttr_t MotorControlTas_attributes = {
   .cb_size = sizeof(encoderReadControlBlock),
   .stack_mem = &encoderReadBuffer[0],
   .stack_size = sizeof(encoderReadBuffer),
-  .priority = (osPriority_t) osPriorityRealtime7,
+  .priority = (osPriority_t) osPriorityRealtime6,
 };
 /* Definitions for canTxTask */
 osThreadId_t canTxTaskHandle;
@@ -83,7 +83,7 @@ const osThreadAttr_t canTxTask_attributes = {
   .cb_size = sizeof(canTxTaskControlBlock),
   .stack_mem = &canTxTaskBuffer[0],
   .stack_size = sizeof(canTxTaskBuffer),
-  .priority = (osPriority_t) osPriorityNormal,
+  .priority = (osPriority_t) osPriorityRealtime7,
 };
 /* Definitions for MPUCanTxTask */
 osThreadId_t MPUCanTxTaskHandle;
@@ -101,6 +101,9 @@ const osThreadAttr_t MPUCanTxTask_attributes = {
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
+
+	HAL_GPIO_WritePin(GPIOF, GPIO_PIN_4, GPIO_PIN_SET);
+
     rover_t* const rover = rover_get_instance();
 
     HAL_CAN_GetRxMessage(hcan, rover->can_config.rx_fifo, &rover->can_manager.config->rx_header, rover->can_manager.rx_data);
@@ -122,6 +125,8 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
             rover->can_manager.message_received = CAN_MANAGER_RECEIVED_NEW_MESSAGE;
         }
     }
+
+    HAL_GPIO_WritePin(GPIOF, GPIO_PIN_4, GPIO_PIN_RESET);
 }
 
 /* USER CODE END FunctionPrototypes */
@@ -220,12 +225,12 @@ void startMotorControl(void *argument)
 	for(;;)
 	{
 		vTaskDelayUntil( &xLastWakeTime, xFrequency );
-		HAL_GPIO_WritePin(GPIOF, GPIO_PIN_4, GPIO_PIN_SET);
+		//HAL_GPIO_WritePin(GPIOF, GPIO_PIN_4, GPIO_PIN_SET);
 		if( rover_enc_can_tx_step()!= ROVER_OK){
 			Error_Handler();
 		}
 
-		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_15, GPIO_PIN_RESET);
+		//HAL_GPIO_WritePin(GPIOF, GPIO_PIN_4, GPIO_PIN_RESET);
 	}
   /* USER CODE END startMotorControl */
 }
@@ -265,7 +270,7 @@ void MPUCanTxFunc(void *argument)
 {
   /* USER CODE BEGIN MPUCanTxFunc */
 	TickType_t xLastWakeTime;
-	const TickType_t xFrequency = pdMS_TO_TICKS(CAN_TX_PERIOD_MS);
+	const TickType_t xFrequency = pdMS_TO_TICKS(MPU_CAN_TX_PERIOD_MS );
 	xLastWakeTime = xTaskGetTickCount();
 	for (;;){
 		vTaskDelayUntil(&xLastWakeTime, xFrequency);

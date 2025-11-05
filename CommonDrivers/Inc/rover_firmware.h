@@ -135,6 +135,10 @@ typedef StaticQueue_t osStaticMessageQDef_t;
 #define CAN_TX_PERIOD_MS                          	(5U)
 
 /**
+ * @brief Period of MPU CAN message transmission in milliseconds.
+ */
+#define MPU_CAN_TX_PERIOD_MS                          	(7U)
+/**
  * @brief Size of the CAN message queue.
  */
 #define CAN_QUEUE_SIZE  16
